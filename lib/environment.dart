@@ -78,6 +78,10 @@ dynamic eval(dynamic x, [Map<Symbol, dynamic>? env]) {
       env[Symbol(symbol)] = eval(exp, env);
       return null;
     }
+    if (x[0].toString() == 'quote') {
+      // quotation
+      return x[1];
+    }
 
     if (x[0].toString() == 'lambda') {
       return (List arguments) {

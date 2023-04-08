@@ -41,6 +41,13 @@ void main() {
       eval([Symbol('define'), 'x', 42], env);
       expect(env[Symbol('x')], equals(42));
     });
+    test('evalating quotation', () {
+      final actual = eval([
+        Symbol('quote'),
+        [1, 2, 3]
+      ], standardEnv);
+      expect(actual, equals([1, 2, 3]));
+    });
 
     test('evaluating a lambda', () {
       final square = eval([
