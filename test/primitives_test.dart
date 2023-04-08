@@ -39,8 +39,8 @@ void main() {
       expect(() => parseTokens([]), throwsA(isA<Exception>()));
     });
 
-    test('single atom', () {
-      expect(parseTokens(['hello']), 'hello');
+    test('symbol', () {
+      expect(parseTokens(['x']), Symbol('x'));
     });
 
     test('integer atom', () {
@@ -54,20 +54,23 @@ void main() {
       expect(parseTokens(['#t']), true);
       expect(parseTokens(['#f']), false);
     });
+    test('string atom', () {
+      expect(parseTokens(['"hello"']), 'hello');
+    });
 
     test('simple list', () {
       expect(
-        parseTokens(['(', 'hello', 'world', ')']),
+        parseTokens(['(', '"hello"', '"world"', ')']),
         ['hello', 'world'],
       );
     });
 
     test('nested list', () {
       expect(
-        parseTokens(['(', 'hello', '(', 'world', 'how', ')', ')']),
+        parseTokens(['(', 'hello', '(', '"world"', '42', ')', ')']),
         [
-          'hello',
-          ['world', 'how']
+          Symbol('hello'),
+          ['world', 42]
         ],
       );
     });

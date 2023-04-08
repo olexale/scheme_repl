@@ -1,63 +1,65 @@
 import 'dart:math' as math;
+import 'package:scheme_repl/primitives.dart';
 
-final Map<String, dynamic> standardEnv = {
+final Map<Symbol, dynamic> standardEnv = {
   ..._strictParamsFuncs,
   ..._multipleParamsFuncs
 };
 
-final Map<String, dynamic> _strictParamsFuncs = {
-  'pi': math.pi,
-  'sin': math.sin,
-  'cos': math.cos,
-  'tan': math.tan,
-  'asin': math.asin,
-  'acos': math.acos,
-  'atan': math.atan,
-  'sqrt': math.sqrt,
-  'random': (num x) => math.Random().nextDouble() * x,
-  '>': (a, b) => a > b,
-  '<': (a, b) => a < b,
-  '>=': (a, b) => a >= b,
-  '<=': (a, b) => a <= b,
-  '=': (a, b) => a == b,
-  'abs': (num x) => x.abs(),
-  'append': (a, b) => a + b,
-  'apply': (Function proc, List args) => Function.apply(proc, args),
-  'car': (List x) => x.first,
-  'cdr': (List x) => x.sublist(1),
-  'cons': (x, List y) => y..insert(0, x),
-  'eq?': (a, b) => identical(a, b),
-  'expt': math.pow,
-  'equal?': (a, b) => a == b,
-  'length': (List x) => x.length,
-  'map': (dynamic Function(dynamic) f, List<dynamic> x) => x.map(f).toList(),
-  'not': (bool x) => !x,
-  'null?': (x) => x == null,
-  'number?': (dynamic x) => x is num,
-  'print': print,
-  'procedure?': (x) => x is Function,
-  'round': (num x) => x.round(),
-  'symbol?': (x) => x is String,
+final Map<Symbol, dynamic> _strictParamsFuncs = {
+  Symbol('pi'): math.pi,
+  Symbol('sin'): math.sin,
+  Symbol('cos'): math.cos,
+  Symbol('tan'): math.tan,
+  Symbol('asin'): math.asin,
+  Symbol('acos'): math.acos,
+  Symbol('atan'): math.atan,
+  Symbol('sqrt'): math.sqrt,
+  Symbol('random'): (num x) => math.Random().nextDouble() * x,
+  Symbol('>'): (a, b) => a > b,
+  Symbol('<'): (a, b) => a < b,
+  Symbol('>='): (a, b) => a >= b,
+  Symbol('<='): (a, b) => a <= b,
+  Symbol('='): (a, b) => a == b,
+  Symbol('abs'): (num x) => x.abs(),
+  Symbol('append'): (a, b) => a + b,
+  Symbol('apply'): (Function proc, List args) => Function.apply(proc, args),
+  Symbol('car'): (List x) => x.first,
+  Symbol('cdr'): (List x) => x.sublist(1),
+  Symbol('cons'): (x, List y) => y..insert(0, x),
+  Symbol('eq?'): (a, b) => identical(a, b),
+  Symbol('expt'): math.pow,
+  Symbol('equal?'): (a, b) => a == b,
+  Symbol('length'): (List x) => x.length,
+  Symbol('map'): (dynamic Function(dynamic) f, List<dynamic> x) =>
+      x.map(f).toList(),
+  Symbol('not'): (bool x) => !x,
+  Symbol('null?'): (x) => x == null,
+  Symbol('number?'): (dynamic x) => x is num,
+  Symbol('print'): print,
+  Symbol('procedure?'): (x) => x is Function,
+  Symbol('round'): (num x) => x.round(),
+  Symbol('symbol?'): (x) => x is Symbol,
 };
 
-final Map<String, dynamic> _multipleParamsFuncs = {
-  'begin': (List x) => x.last,
-  'list': (List<dynamic> x) => List.from(x),
-  '+': (List x) => x.reduce((a, b) => a + b),
-  '-': (List x) => x.reduce((a, b) => a - b),
-  '*': (List x) => x.reduce((a, b) => a * b),
-  '/': (List x) => x.reduce((a, b) => a / b),
-  'max': (List x) => x.cast<num>().reduce((a, b) => math.max(a, b)),
-  'min': (List x) => x.cast<num>().reduce((a, b) => math.min(a, b)),
+final Map<Symbol, dynamic> _multipleParamsFuncs = {
+  Symbol('begin'): (List x) => x.last,
+  Symbol('list'): (List<dynamic> x) => List.from(x),
+  Symbol('+'): (List x) => x.reduce((a, b) => a + b),
+  Symbol('-'): (List x) => x.reduce((a, b) => a - b),
+  Symbol('*'): (List x) => x.reduce((a, b) => a * b),
+  Symbol('/'): (List x) => x.reduce((a, b) => a / b),
+  Symbol('max'): (List x) => x.cast<num>().reduce((a, b) => math.max(a, b)),
+  Symbol('min'): (List x) => x.cast<num>().reduce((a, b) => math.min(a, b)),
 };
 
-dynamic eval(dynamic x, [Map<String, dynamic>? env]) {
+dynamic eval(dynamic x, [Map<Symbol, dynamic>? env]) {
   env ??= standardEnv;
 
-  if (x is String) {
+  if (x is Symbol) {
     return env[x];
   }
-  if (x is num || x is bool) {
+  if (x is num || x is bool || x is String) {
     return x;
   }
   if (x is List) {
@@ -73,14 +75,14 @@ dynamic eval(dynamic x, [Map<String, dynamic>? env]) {
       // definition
       final symbol = x[1].toString();
       final exp = x[2];
-      env[symbol] = eval(exp, env);
+      env[Symbol(symbol)] = eval(exp, env);
       return null;
     }
 
     if (x[0].toString() == 'lambda') {
       return (List arguments) {
-        final localScope = <String, dynamic>{
-          ...Map.fromIterables(x[1].cast<String>(), arguments),
+        final localScope = <Symbol, dynamic>{
+          ...Map.fromIterables(x[1].cast<Symbol>(), arguments),
           ...?env,
         };
         return eval(x[2], localScope);
@@ -94,9 +96,8 @@ dynamic eval(dynamic x, [Map<String, dynamic>? env]) {
     return Function.apply(
       proc,
       // if function is either an exceptional or a custom lambda - wrap args
-      _multipleParamsFuncs.containsKey(x[0].toString()) ||
-              (proc is Function &&
-                  !_strictParamsFuncs.containsKey(x[0].toString()))
+      _multipleParamsFuncs.containsKey(x[0]) ||
+              (proc is Function && !_strictParamsFuncs.containsKey(x[0]))
           ? [args]
           : args,
     );

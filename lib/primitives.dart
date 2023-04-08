@@ -42,9 +42,25 @@ dynamic _atom(String token) {
   if (token == '#f') {
     return false;
   }
-  // // parse strings
-  // if (token.startsWith("'") && token.endsWith("'")) {
-  //   return token.substring(1, token.length - 1);
-  // }
-  return token;
+  // parse strings
+  if (token.startsWith('"') && token.endsWith('"')) {
+    return token.substring(1, token.length - 1);
+  }
+  return Symbol(token);
+}
+
+class Symbol {
+  const Symbol(this.name);
+  final String name;
+
+  @override
+  String toString() => name;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Symbol && runtimeType == other.runtimeType && name == other.name;
+
+  @override
+  int get hashCode => name.hashCode;
 }
