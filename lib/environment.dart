@@ -26,13 +26,11 @@ final Map<Symbol, dynamic> _strictParamsFuncs = {
   Symbol('apply'): (Function proc, List args) => Function.apply(proc, args),
   Symbol('car'): (List x) => x.first,
   Symbol('cdr'): (List x) => x.sublist(1),
-  Symbol('cons'): (x, List y) => y..insert(0, x),
-  Symbol('eq?'): (a, b) => identical(a, b),
+  Symbol('cons'): (x, List y) => [x, ...y],
+  Symbol('eq?'): (a, b) => a == b,
   Symbol('expt'): math.pow,
   Symbol('equal?'): (a, b) => a == b,
   Symbol('length'): (List x) => x.length,
-  Symbol('map'): (dynamic Function(dynamic) f, List<dynamic> x) =>
-      x.map(f).toList(),
   Symbol('not'): (bool x) => !x,
   Symbol('null?'): (x) => x == null,
   Symbol('number?'): (dynamic x) => x is num,
@@ -91,6 +89,10 @@ dynamic eval(dynamic x, [Map<Symbol, dynamic>? env]) {
         };
         return eval(x[2], localScope);
       };
+    }
+    if (x[0].toString() == 'map') {
+      final args = eval(x[2], env);
+      return args.map((p) => eval([x[1], p])).toList();
     }
 
     // procedure call
