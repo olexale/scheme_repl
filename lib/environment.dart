@@ -65,7 +65,7 @@ dynamic eval(dynamic x, Map<Symbol, dynamic> env) {
       'quote' => x[1],
       'lambda' => _handleLambda(x, env),
       'map' => _handleMap(x, env),
-      _ => _handleProcudure(x, env),
+      _ => _handleProcedure(x, env),
     };
   }
   throw Exception('Unknown expression type: $x');
@@ -101,7 +101,7 @@ dynamic _handleMap(List x, Map<Symbol, dynamic> env) {
   return args.map((p) => eval([x[1], p], env)).toList();
 }
 
-dynamic _handleProcudure(List x, Map<Symbol, dynamic> env) {
+dynamic _handleProcedure(List x, Map<Symbol, dynamic> env) {
   var proc = eval(x[0], env);
   var args = x.sublist(1).map((arg) => eval(arg, env)).toList();
 
