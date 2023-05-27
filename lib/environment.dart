@@ -61,52 +61,58 @@ dynamic eval(dynamic x, [Map<Symbol, dynamic>? env]) {
     return x;
   }
   if (x is List) {
-    if (x[0].toString() == 'if') {
-      // conditional
-      final test = x[1];
-      final conseq = x[2];
-      final alt = x[3];
-      final exp = eval(test, env) ? conseq : alt;
-      return eval(exp, env);
-    }
-    if (x[0].toString() == 'define') {
-      // definition
-      final symbol = x[1].toString();
-      final exp = x[2];
-      env[Symbol(symbol)] = eval(exp, env);
-      return null;
-    }
-    if (x[0].toString() == 'quote') {
-      // quotation
-      return x[1];
-    }
-
-    if (x[0].toString() == 'lambda') {
-      return (List arguments) {
-        final localScope = <Symbol, dynamic>{
-          ...Map.fromIterables(x[1].cast<Symbol>(), arguments),
-          ...?env,
-        };
-        return eval(x[2], localScope);
-      };
-    }
-    if (x[0].toString() == 'map') {
-      final args = eval(x[2], env);
-      return args.map((p) => eval([x[1], p])).toList();
-    }
-
-    // procedure call
-    var proc = eval(x[0], env);
-    var args = x.sublist(1).map((arg) => eval(arg, env)).toList();
-
-    return Function.apply(
-      proc,
-      // if function is either an exceptional or a custom lambda - wrap args
-      _multipleParamsFuncs.containsKey(x[0]) ||
-              (proc is Function && !_strictParamsFuncs.containsKey(x[0]))
-          ? [args]
-          : args,
-    );
+    return switch (x[0].toString()) {
+      'if' => _handleIf(x, env),
+      'define' => _handleDefine(x, env),
+      'quote' => x[1],
+      'lambda' => _handleLambda(x, env),
+      'map' => _handleMap(x, env),
+      _ => _handleProcudure(x, env),
+    };
   }
   throw Exception('Unknown expression type: $x');
+}
+
+dynamic _handleIf(List x, Map<Symbol, dynamic> env) {
+  final test = x[1];
+  final conseq = x[2];
+  final alt = x[3];
+  final exp = eval(test, env) ? conseq : alt;
+  return eval(exp, env);
+}
+
+dynamic _handleDefine(List x, Map<Symbol, dynamic> env) {
+  final symbol = x[1].toString();
+  final exp = x[2];
+  env[Symbol(symbol)] = eval(exp, env);
+  return null;
+}
+
+dynamic _handleLambda(List x, Map<Symbol, dynamic> env) {
+  return (List arguments) {
+    final localScope = <Symbol, dynamic>{
+      ...Map.fromIterables(x[1].cast<Symbol>(), arguments),
+      ...env,
+    };
+    return eval(x[2], localScope);
+  };
+}
+
+dynamic _handleMap(List x, Map<Symbol, dynamic> env) {
+  final args = eval(x[2], env);
+  return args.map((p) => eval([x[1], p])).toList();
+}
+
+dynamic _handleProcudure(List x, Map<Symbol, dynamic> env) {
+  var proc = eval(x[0], env);
+  var args = x.sublist(1).map((arg) => eval(arg, env)).toList();
+
+  return Function.apply(
+    proc,
+    // if function is either an exceptional or a custom lambda - wrap args
+    _multipleParamsFuncs.containsKey(x[0]) ||
+            (proc is Function && !_strictParamsFuncs.containsKey(x[0]))
+        ? [args]
+        : args,
+  );
 }
