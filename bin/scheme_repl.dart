@@ -12,7 +12,7 @@ void main(List<String> arguments) {
   stdin.transform(utf8.decoder).listen(
     (program) {
       try {
-        print(eval(parse(program)));
+        print(eval(parse(program), standardEnv));
       } catch (e) {
         print(e.toString());
       }

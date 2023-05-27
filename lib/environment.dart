@@ -51,9 +51,7 @@ final Map<Symbol, dynamic> _multipleParamsFuncs = {
   Symbol('min'): (List x) => x.cast<num>().reduce((a, b) => math.min(a, b)),
 };
 
-dynamic eval(dynamic x, [Map<Symbol, dynamic>? env]) {
-  env ??= standardEnv;
-
+dynamic eval(dynamic x, Map<Symbol, dynamic> env) {
   if (x is Symbol) {
     return env[x];
   }
@@ -100,7 +98,7 @@ dynamic _handleLambda(List x, Map<Symbol, dynamic> env) {
 
 dynamic _handleMap(List x, Map<Symbol, dynamic> env) {
   final args = eval(x[2], env);
-  return args.map((p) => eval([x[1], p])).toList();
+  return args.map((p) => eval([x[1], p], env)).toList();
 }
 
 dynamic _handleProcudure(List x, Map<Symbol, dynamic> env) {
